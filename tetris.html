@@ -58,11 +58,7 @@ if (!window.requestAnimationFrame) { // http://paulirish.com/2011/requestanimati
 }
 
 window.onload = function() {
-    //var mycanv = document.getElementById("canvas1");
-    //var ctx = mycanv.getContext("2d");
 
-// change for git2
-//testing
 
 	var map_x = 16;
 	var map_y = 24;
@@ -86,11 +82,97 @@ window.onload = function() {
 		img_G.src = "images/G8.png";
 		img_C.src = "images/C8.png";
 	}
+////////////////////////
+//////////GAME CODE V2
+////////////////////////
+	var i = { size: 4, map_temp: [0x0F00, 0x2222, 0x00F0, 0x4444], color: 'cyan'   };
+    var j = { size: 3, map_temp: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: 'blue'   };
+    var l = { size: 3, map_temp: [0x4460, 0x0E80, 0xC440, 0x2E00], color: 'orange' };
+    var o = { size: 2, map_temp: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'yellow' };
+    var s = { size: 3, map_temp: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: 'green'  };
+    var t = { size: 3, map_temp: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'purple' };
+    var z = { size: 3, map_temp: [0x0C60, 0x4C80, 0xC600, 0x2640], color: 'red'    };
 	
 	var letter_array = new Array("A","T","G","C");
 
-	//map[]=0 -> unoccupied ; map[]=1 -> occupied by A ; map[]=2 -> occupied by T ; map[]=3 -> occupied by G ; map[]=4 -> occupied by C
 	var map = new Array(map_x);
+	var map_temp;
+
+	var current_temp;
+
+	function eachblock(type, x, y, dir, fn) {
+      var bit, result; 
+	  var row = 0, col = 0; 
+	  var map_temp = type.map_temp[dir];
+      for(bit = 0x8000 ; bit > 0 ; bit = bit >> 1) {
+        if (map_temp & bit) {
+          fn(x + col, y + row);
+        }
+        if (++col === 4) {
+          col = 0;
+          ++row;
+        }
+      }
+    }
+
+	function occupied(type, x, y, dir) {
+      var result = false
+      eachblock(type, x, y, dir, function(x, y) {
+        if ((x < 0) || (x >= nx) || (y < 0) || (y >= ny) || getBlock(x,y))
+          result = true;
+      });
+      return result;
+    }
+
+	function get_map(x,y){ 
+		return (blocks && blocks[x] ? blocks[x][y] : null); 
+	}
+
+    function set_map(x,y,type){ 
+		blocks[x] = blocks[x] || []; blocks[x][y] = type; invalidate(); 
+	}
+
+
+	var pieces = [];
+    function randomPiece() {
+      if (pieces.length == 0)
+        pieces = [i,i,i,i,j,j,j,j,l,l,l,l,o,o,o,o,s,s,s,s,t,t,t,t,z,z,z,z];
+      var type = pieces.splice(random(0, pieces.length-1), 1)[0];
+      return { type: type, dir: DIR.UP, x: Math.round(random(0, nx - type.size)), y: 0 };
+    }
+
+    function draw_map_temp() {
+      if (invalid.court) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (playing)
+          drawPiece(ctx, current.type, current.x, current.y, current.dir);
+        var x, y, block;
+        for(y = 0 ; y < ny ; y++) {
+          for (x = 0 ; x < nx ; x++) {
+            if (block = getBlock(x,y))
+              drawBlock(ctx, x, y, block.color);
+          }
+        }
+        ctx.strokeRect(0, 0, nx*dx - 1, ny*dy - 1); // court boundary
+        invalid.court = false;
+      }
+    }
+
+	function drawPiece(ctx, type, x, y, dir) {
+      eachblock(type, x, y, dir, function(x, y) {
+        drawBlock(ctx, x, y, type.color);
+      });
+    }
+
+    function drawBlock(ctx, x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x*dx, y*dy, dx, dy);
+      ctx.strokeRect(x*dx, y*dy, dx, dy)
+    }
+
+////////////////////////
+//////////GAME CODE V1
+////////////////////////
 
 	function initiate_map(){
 		for (var i = 0; i < map_y; i++) {
@@ -99,6 +181,10 @@ window.onload = function() {
 				map[i][j] = 0;
 			}
 		}
+	}
+
+	function setCurrentPiece(piece) {
+		 current = piece || randomPiece(); invalidate();
 	}
 	
     function run() {
@@ -263,8 +349,9 @@ window.onload = function() {
 	function spawn_piece(){
 		
 		var pieceRandomizer = Math.floor((Math.random() * piece_types) + 1);
-		//var piece = create_random_piece(pieceRandomizer);
-		var piece = piece_z;
+		console.log(pieceRandomizer);
+		var piece = create_random_piece(pieceRandomizer);
+		//var piece = piece_z;
 		//Stim ce pozitie e ocupata
 			//piesa este in rotation1
 		var map_middle = map_x / 2;
@@ -299,7 +386,7 @@ window.onload = function() {
 
 	function drop() {
 		var temp = current_piece.rotations.rotation1;
-
+		var size = 0;
 		var piece_x = 0;
 		var piece_y;
 		for (var i = current_piece.location.x; i < current_piece.location.x + 4; i++){
@@ -307,14 +394,15 @@ window.onload = function() {
 			for (var j = current_piece.location.y; j < current_piece.location.y + 4; j++){
 				if (piece_x - 4 < map_x && map[i]) {
 					map[i][j] = 0;
+					size++;
 				}
 				//drawBlockNoBorder(j,i,'white');
 				piece_y++;
+				if(size === 4){
+					break;
+				}
 			}
 			piece_x++;
-			// if (i - 3> map_x) {
-			// 	break;
-			// }
 		}
 		piece_x = 0;
 		//ctx.strokeRect(0, 0, map_x*dx - 1, map_y*dy - 1);
@@ -453,14 +541,14 @@ window.onload = function() {
 	}
 
 	function check_collision(){
-
+		
 	}
 
 	function rotate_piece(piece){
 		
 	}
 	
-	function search_removable_blocks(){
+	function search_removable_map_temp(){
 		var ia = -1,
 			ja,
 			ib,
@@ -491,15 +579,15 @@ window.onload = function() {
 					ib = i;
 					jb = j + 1;
 				}
-				remove_blocks(ia,jb,ib,jb);
+				remove_map_temp(ia,jb,ib,jb);
 			}
 		}
 		if(ia != -1){
-			search_removable_blocks();
+			search_removable_map_temp();
 			}
 	}
 	
-	function remove_blocks(ia,jb,ib,jb){
+	function remove_map_temp(ia,jb,ib,jb){
 		map[ia][ja] = 0;
 		map[ib][jb] = 0;
 	}
@@ -538,22 +626,6 @@ window.onload = function() {
 	function clearActions(){
 		actions = []; 
 	}
-		/*
-	function draw_block() {
-			
-	}
-		
-	function draw_shape() {
-			
-	}
-		
-	function draw_background() {
-			
-	}
-	function change_position(){
-			
-	}
-	*/
 	function move_down(){
 			
 	}	
