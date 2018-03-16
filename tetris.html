@@ -40,7 +40,6 @@
 <script>
 var KEY = { ESC: 27, SPACE: 32, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40};
 var DIR = { UP: 0, RIGHT: 1, DOWN: 2, LEFT: 3, MIN: 0, MAX: 3 };
-var actions;
 
 // Render
 var canvas = document.getElementById('canvas');
@@ -74,7 +73,8 @@ window.onload = function() {
 	var speed = 0.6;
 	
 	var current_piece;
-	
+	var actions;
+
 	var img_A = new Image();
 	var img_T = new Image();
 	var img_G = new Image();
@@ -103,6 +103,9 @@ window.onload = function() {
 	
     function run() {
 
+    document.addEventListener('keydown', keydown, false);
+	actions = [];
+
 	initiate_map();
     //showStats(); // initialize FPS counter
     //addEvents(); // attach keydown and resize events
@@ -116,6 +119,8 @@ window.onload = function() {
         draw();
         last = now;
         requestAnimationFrame(frame, canvas);
+
+		clearActions();
     }
 /*
     resize(); // setup all our sizing information
@@ -293,7 +298,6 @@ window.onload = function() {
 	}
 
 	function drop() {
-		// stergem vechea pozitie
 		var temp = current_piece.rotations.rotation1;
 
 		var piece_x = 0;
@@ -316,6 +320,92 @@ window.onload = function() {
 		//ctx.strokeRect(0, 0, map_x*dx - 1, map_y*dy - 1);
 
 		current_piece.location.x++;
+
+		for (var i = current_piece.location.x; i < current_piece.location.x + 4; i++){
+			piece_y = 0;
+			for (var j = current_piece.location.y; j < current_piece.location.y + 4; j++){
+				//map[i][j] = temp[piece_x][piece_y];
+				//if(map[i][j] === 1){
+				//	drawBlock(j,i, current_piece.color);
+				//}
+				if (temp[piece_x][piece_y] === 1 && piece_x - 4 < map_x) {
+					map[i][j] = current_piece; 
+				}
+				piece_y++;
+			}
+			piece_x++;
+			// if (i - 4> map_x) {
+			// 	break;
+			// }
+		}
+	}
+
+	function move_left(){
+		var temp = current_piece.rotations.rotation1;
+
+		var piece_x = 0;
+		var piece_y;
+		for (var i = current_piece.location.x; i < current_piece.location.x + 4; i++){
+			piece_y = 0;
+			for (var j = current_piece.location.y; j < current_piece.location.y + 4; j++){
+				if (piece_x - 4 < map_x && map[i]) {
+					map[i][j] = 0;
+				}
+				//drawBlockNoBorder(j,i,'white');
+				piece_y++;
+			}
+			piece_x++;
+			// if (i - 3> map_x) {
+			// 	break;
+			// }
+		}
+		piece_x = 0;
+		//ctx.strokeRect(0, 0, map_x*dx - 1, map_y*dy - 1);
+
+		current_piece.location.y--;
+
+		for (var i = current_piece.location.x; i < current_piece.location.x + 4; i++){
+			piece_y = 0;
+			for (var j = current_piece.location.y; j < current_piece.location.y + 4; j++){
+				//map[i][j] = temp[piece_x][piece_y];
+				//if(map[i][j] === 1){
+				//	drawBlock(j,i, current_piece.color);
+				//}
+				if (temp[piece_x][piece_y] === 1 && piece_x - 4 < map_x) {
+					map[i][j] = current_piece; 
+				}
+				piece_y++;
+			}
+			piece_x++;
+			// if (i - 4> map_x) {
+			// 	break;
+			// }
+		}
+	}
+
+	function move_right(){
+		var temp = current_piece.rotations.rotation1;
+
+		var piece_x = 0;
+		var piece_y;
+		for (var i = current_piece.location.x; i < current_piece.location.x + 4; i++){
+			piece_y = 0;
+			for (var j = current_piece.location.y; j < current_piece.location.y + 4; j++){
+				if (piece_x - 4 < map_x && map[i]) {
+					map[i][j] = 0;
+				}
+				//drawBlockNoBorder(j,i,'white');
+				piece_y++;
+			}
+			piece_x++;
+			// if (i - 3> map_x) {
+			// 	break;
+			// }
+		}
+		piece_x = 0;
+		//ctx.strokeRect(0, 0, map_x*dx - 1, map_y*dy - 1);
+
+		current_piece.location.y++;
 
 		for (var i = current_piece.location.x; i < current_piece.location.x + 4; i++){
 			piece_y = 0;
@@ -430,7 +520,7 @@ window.onload = function() {
 		if (playing) {
         //if (vscore < score)
         //  setVisualScore(vscore + 1);
-        //handle(actions.shift());
+        handle(actions.shift());
         total_time = total_time + timer;
         if (total_time > speed) {
           total_time = total_time - speed;
@@ -444,6 +534,10 @@ window.onload = function() {
         }
       }
 	}
+
+	function clearActions(){
+		actions = []; 
+	}
 		/*
 	function draw_block() {
 			
@@ -454,14 +548,6 @@ window.onload = function() {
 	}
 		
 	function draw_background() {
-			
-	}
-		
-	function move_left() {
-			current_piece = 
-	}
-		
-	function move_right(){
 			
 	}
 	function change_position(){
@@ -522,7 +608,25 @@ window.onload = function() {
 		ctx.fillStyle = color;
 		ctx.fillRect(x*dx, y*dy, dx, dy);
     }
-	
+
+
+	function handle(action) {
+      switch(action) {
+        case DIR.LEFT:  move(DIR.LEFT);  break;
+        case DIR.RIGHT: move(DIR.RIGHT); break;
+        case DIR.UP:    rotate();        break;
+        case DIR.DOWN:  drop();          break;
+      }
+    }
+
+    function move(dir) {
+      switch(dir) {
+        case DIR.RIGHT: move_right(); break;
+        case DIR.LEFT:  move_left(); break;
+        case DIR.DOWN:  drop(); break;
+      }
+	}
+
 	function keydown(ev) {
       var handled = false;
       if (playing) {
