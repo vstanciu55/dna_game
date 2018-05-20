@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DNA Tetris</title>
+  <link rel="stylesheet" type="text/css" href="DNA_Tetris.css" />
+
+
+</head>
+
+<div id="tetris">
+    <div id="Title">
+        <img src="images/DNA-Tetris.png" >
+    </div>
+    <div id="menu">
+      <p id="start"><a href="javascript:play();"></a></p>
+      <p><canvas id="upcoming"></canvas></p>
+      <p>score <span id="score">0000</span></p>
+    </div>
+    <canvas id="canvas">
+      Sorry, this example cannot be run because your browser does not support the &lt;canvas&gt; element
+    </canvas>
+    <div id="helpingImage">
+        <img src="images/TETRIS-Helper.png" style="width:200px;height:100px;">
+    </div>
+    <div id="menu2">
+      <p><canvas id="sequence"></canvas></p>
+    </div>
+    <div id="welcomeMessage">
+      Welcome to the DNA Tetris game! <br /><br /><br />
+      This game will teach you the composition of DNA <br /><br />
+      To learn about DNA replication and how to play the first level press 'q' <br />
+      Press '1' to start the first level<br /><br />
+      To learn about Gene Synthesis and how to play the second level press 'w' <br />
+      press '2' to start the second level<br />
+    </div>
+
+    <div id = "help1">
+      The DNA is made out of a double helix.<br />
+      Each string of the helix is made out of a string of nucleotides<br />
+      They are a compound that can be either adenine, thymine, cytosine or guanine<br />
+      Adenine forms a double bond with thymine<br />
+      Cytosine forms a triple bond with guanine<br /><br />
+      Control the piece using the right,left and down keys<br />
+      Press the up arrow key to change the rotation of the piece<br />
+      Match 'A' and 'T' blocks. Likewise, 'C' and 'G' also bond<br />
+      Your score will increase each time you match blocks<br />
+      Press 'b' to go back to the main menu<br />
+      Press 1 to start the game<br />
+    </div>
+    <div id = "help2">
+      Gene Synthesis, also known as DNA printing, is a process<br />
+      in which a DNA double stranded DNA molecule<br />
+      is created from a single thread of DNA code. <br />
+      In other words, given a sequence of nucleotides, <br />
+      a fully functional DNA can be constructed by <br />
+      artificially creating a second sequence that bonds the first one.<br /><br />
+      Try matching the top nucleotide in the molecule to a block in the playing field<br />
+      To match them just bond two blocks like you did in the first level<br />
+      If the sequence is empty you win the game!<br />
+      Press 'b' to go back to the main menu<br />
+      Press 2 to start the game<br />
+    </div>
+
+</div>
+
+<body>
+
+  <div id="leaderboard">
+    Leaderboard for level one: <br />
+    #1 <span id="player1Name"></span>: <span id="player1Score"></span><br /><br />
+    #2 <span id="player2Name"></span>: <span id="player2Score"></span><br /><br />
+    #3 <span id="player3Name"></span>: <span id="player3Score"></span><br /><br />
+    #4 <span id="player4Name"></span>: <span id="player4Score"></span><br /><br />
+    #5 <span id="player5Name"></span>: <span id="player5Score"></span><br /><br />
+    Leaderboard for level two: <br />
+    #1 <span id="player1Nametwo"></span>: <span id="player1Scoretwo"></span><br /><br />
+    #2 <span id="player2Nametwo"></span>: <span id="player2Scoretwo"></span><br /><br />
+    #3 <span id="player3Nametwo"></span>: <span id="player3Scoretwo"></span><br /><br />
+    #4 <span id="player4Nametwo"></span>: <span id="player4Scoretwo"></span><br /><br />
+    #5 <span id="player5Nametwo"></span>: <span id="player5Scoretwo"></span><br /><br />
+    <button onclick="reset_leaderboard()">Reset leaderboard</button>
+  </div>
+
+  <div id="videos">
+    tutorial level one <br/>
+    <a href="tutorial1.html" target="_blank">View</a><br/>
+    tutorial level two <br/>
+    <a href="tutorial2.html" target="_blank">View</a><br/>
+
+  </div>
+  <div id="lose">
+      The game is over. You have scored <span id="my_score"></span> points. 
+      <input class="playerText" type="text" pattern="[A-Za-z]{10}" id="playerText" name="player_name" maxlength="10"></input> <br/ >
+      Press 'enter' to submit your name
+  </div>
+<script>
+
+var KEY = { ESC: 27, SPACE: 32, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, ONE: 49, TWO: 50, ENTER: 13, Q:81, W:87, B:66};
+var DIR = { UP: 0, RIGHT: 1, DOWN: 2, LEFT: 3, MIN: 0, MAX: 3 };
+
+// Render
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var ucanvas = document.getElementById('upcoming');
+var uctx = ucanvas.getContext('2d');
+var scanvas = document.getElementById('sequence');
+var sctx = scanvas.getContext('2d');
+
+//function removes all elements from the leaderboard and all IDs related
+function reset_leaderboard(){
+  leaderboard_1 = [];//new Array();
+  leaderboard_2 = [];
+  document.getElementById("player1Name").innerHTML = '';
+  document.getElementById("player1Score").innerHTML = null;
+  document.getElementById("player2Name").innerHTML = '';
+  document.getElementById("player2Score").innerHTML = null;
+  document.getElementById("player3Name").innerHTML = '';
+  document.getElementById("player3Score").innerHTML = null;
+  document.getElementById("player4Name").innerHTML = '';
+  document.getElementById("player4Score").innerHTML = null;
+  document.getElementById("player5Name").innerHTML = '';
+  document.getElementById("player5Score").innerHTML = null;
+  document.getElementById("player1Nametwo").innerHTML = '';
+  document.getElementById("player1Scoretwo").innerHTML = null;
+  document.getElementById("player2Nametwo").innerHTML = '';
+  document.getElementById("player2Scoretwo").innerHTML = null;
+  document.getElementById("player3Nametwo").innerHTML = '';
+  document.getElementById("player3Scoretwo").innerHTML = null;
+  document.getElementById("player4Nametwo").innerHTML = '';
+  document.getElementById("player4Scoretwo").innerHTML = null;
+  document.getElementById("player5Nametwo").innerHTML = '';
+  document.getElementById("player5Scoretwo").innerHTML = null;
+  console.log(leaderboard_1);
+}
+
+if (!window.requestAnimationFrame) { // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+      window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
+                                     window.mozRequestAnimationFrame    ||
+                                     window.oRequestAnimationFrame      ||
+                                     window.msRequestAnimationFrame     ||
+                                     function(callback, element) {
+                                       window.setTimeout(callback, 1000 / 60);
+                                     }
+}
+
+window.onload = function() {
+////////////////////////
+//////////GAME CODE V2
+////////////////////////
+
+	var map_x = 12; //the width of the playing field
+	var map_y = 20; //the height of the playing field
+  var score = 0; //the invidual score of the current player
+  var playing = false; //level one indicator
+  var playing1 = false;  //level two indicator
+	var total_time;
+	var speed = 0.6; //speed at which the piece falls
+
+	var current_piece;
+	var next_piece;
+  var actions; //list of actions performed by the keyboard
+  var last_played = 0; //used for the leaderboard to know which level it was just completed
+
+//information used for the sequence of nucleotides
+  var sequence = [];
+  var sequence_x = 1;
+  var sequence_y = 10;
+  var sequence_max_lenght = 10;
+
+//height and width of the canvases
+	var dx = canvas.width  / map_x;
+  var dy = canvas.height / map_y; 
+  var sx = scanvas.width / sequence_x;
+  var sy = scanvas.height / sequence_y;
+
+//images used to create blocks
+	var img_A = new Image();
+	var img_T = new Image();
+	var img_G = new Image();
+  var img_C = new Image();
+
+//leaderboards for level one and level two respectively
+  var leaderboard_1 = [];
+  var leaderboard_2 = [];
+	
+//loads images into the game
+	function initialise_images(){
+		img_A.src = "images/A8.png";
+		img_T.src = "images/T8.png";
+		img_G.src = "images/G8.png";
+		img_C.src = "images/C8.png";
+	}
+
+//all types of tetris pieces remembered as hexadecimals
+	var i = { size: 4, map: [0x0F00, 0x2222, 0x00F0, 0x4444],   dna: [] };
+  var j = { size: 3, map: [0x44C0, 0x8E00, 0x6440, 0x0E20],   dna: []  };
+  var l = { size: 3, map: [0x4460, 0x0E80, 0xC440, 0x2E00],   dna: [] };
+  var o = { size: 2, map: [0xCC00, 0xCC00, 0xCC00, 0xCC00],   dna: [] };
+  var s = { size: 3, map: [0x06C0, 0x8C40, 0x6C00, 0x4620],   dna: []  };
+  var t = { size: 3, map: [0x0E40, 0x4C40, 0x4E00, 0x4640],   dna: [] };
+  var z = { size: 3, map: [0x0C60, 0x4C80, 0xC600, 0x2640],   dna: []  };
+	
+
+//the grid/playing field of the game
+	var map = [];
+
+//iterates through the map to see what elements in the array are occupied
+	function iterate_block(type, x, y, dir, fn) {
+    var bit, result; 
+	  var row = 0, col = 0; 
+	  var map = type.map[dir];
+      for(bit = 0x8000 ; bit > 0 ; bit = bit >> 1) {
+        if (map & bit) {
+          fn(x + col, y + row);
+        }
+        if (++col === 4) {
+          col = 0;
+          ++row;
+        }
+      }
+    }
+//sets a value to an index of the map
+  function set_block(x,y,nucleotide_temp) {
+	  map[x] = map[x] || [];
+    map[x][y] = null;
+    if (nucleotide_temp) {
+      map[x][y] = {};
+		  map[x][y].nucleotide = nucleotide_temp;
+    }
+	  invalidate_map();
+  }
+//checks if an index is occupied
+	function occupied(type, x, y, dir) {
+      var result = false
+      iterate_block(type, x, y, dir, function(x, y) {
+        if ((x < 0) || (x >= map_x) || (y < 0) || (y >= map_y) || get_block(x,y))
+          result = true;
+      });
+      return result;
+    }
+//gets a specific block within the map
+	function get_block(x,y) {
+		return (map && map[x] ? map[x][y] : null); 
+	}
+//sets the current piece
+	function set_current_piece(piece) { 
+		current_piece = piece || random_piece();
+		invalidate_map();     
+	}
+//sets the upcoming piece
+	function set_next_piece(piece) {
+		next_piece = piece || random_piece(); 
+		invalidate_next(); 
+	}
+
+	var pieces = [];
+	var nucleotides = [];
+//creates a random piece with varying nucleotides using randomizer
+  function random_piece() {
+    if (pieces.length == 0)
+      pieces = [i,i,i,i,j,j,j,j,l,l,l,l,o,o,o,o,s,s,s,s,t,t,t,t,z,z,z,z];
+		var type = pieces.splice(random(0, pieces.length-1), 1)[0];
+    //var type = i;
+		if (nucleotides.length == 0)
+			nucleotides = ['a','a','a','a','g','g','g','g','c','c','c','c','t','t','t','t'];
+		if (type) {
+      type.dna[0] = nucleotides.splice(random(0, nucleotides.length-1), 1)[0];
+			for (var counter=1; counter<4; counter++) {
+        do{
+          if (nucleotides.length == 0)
+            nucleotides = ['a','a','a','a','g','g','g','g','c','c','c','c','t','t','t','t'];
+          type.dna[counter] = nucleotides.splice(random(0, nucleotides.length-1), 1)[0];
+          }while((type.dna[counter] == 'a' && type.dna[counter-1] =='t') ||
+                (type.dna[counter] == 't' && type.dna[counter-1] =='a') ||
+                (type.dna[counter] == 'c' && type.dna[counter-1] =='g') ||
+                (type.dna[counter] == 'g' && type.dna[counter-1] =='c'));
+			}
+		}
+    return { type: type, dir: DIR.UP, x: Math.round(random(0, map_x - type.size)), y: 0 };
+  }
+//randomizer used in conjunction with an array's splice method
+  function random(min, max)      { 
+		return (min + (Math.random() * (max - min)));            
+	}
+//creates a random sequence of nucleotides using a randomizer
+  function create_Sequence(){
+    nucleotides = ['a','a','a','a','g','g','g','g','c','c','c','c','t','t','t','t'];
+    for(var i = 0; i < sequence_max_lenght; i++){
+      sequence[i] = nucleotides.splice(random(0, nucleotides.length-1), 1)[0];
+    }
+    invalidate_sequence();
+  }
+
+	
+  var invalid = {};
+//makes sure the drawing of the elements don't overflow / makes sure to know when a value changes and when the drawing function should redraw an item
+  function invalidate_map()         { invalid.map  = true; }
+  function invalidate_next()     { invalid.next_piece   = true; }
+  function invalidate_score()    { invalid.score  = true; }
+  function invalidate_rows()     { invalid.rows   = true; }
+  function invalidate_sequence() {invalid.sequence = true;}
+
+
+//the main function of the program
+	function run(){
+		document.addEventListener('keydown', keydown, false);
+    window.addEventListener('resize', resize, false);
+		initialise_images();
+		actions = [];
+		total_time = 0;
+    var last = now = new Date().getTime();
+    function frame() {
+      now = new Date().getTime();
+      update(Math.min(1, (now - last) / 1000.0)); // using requestAnimationFrame have to be able to handle large delta's caused when it 'hibernates' in a background or non-visible tab
+      draw();
+      last = now;
+      requestAnimationFrame(frame, canvas);
+
+		}
+    
+    resize();
+		reset_game();
+		frame();
+  }
+//a series of functions that set elements of the game visible or hidden 
+  function set_game_visible(){
+    if(playing){
+      document.getElementById("canvas").style.visibility = "visible";
+      document.getElementById("menu").style.visibility = "visible";
+      document.getElementById("upcoming").style.visibility = "visible";
+      document.getElementById("menu2").style.visibility = "visible";
+      document.getElementById("score").style.visibility = "visible";
+    }
+  }
+
+  function set_game_invisible(){
+      document.getElementById("canvas").style.visibility = "hidden";
+      document.getElementById("menu").style.visibility = "hidden";
+      document.getElementById("upcoming").style.visibility = "hidden";
+      document.getElementById("menu2").style.visibility = "hidden";
+      document.getElementById("score").style.visibility = "hidden";
+      document.getElementById("sequence").style.visibility = "hidden";
+  }
+
+  function set_main_menu_invisible(){
+    document.getElementById("welcomeMessage").style.visibility = "hidden";
+    document.getElementById("Title").style.visibility = "hidden";
+    document.getElementById("help1").style.visibility = "hidden";
+    document.getElementById("help2").style.visibility = "hidden";
+  }
+
+  function set_main_menu_visible(){
+    document.getElementById("welcomeMessage").style.visibility = "visible";
+    document.getElementById("Title").style.visibility = "visible";
+  }
+//updates movement of the game based on the timer
+	function update(timer){
+		if (playing) {
+      invalidate_score();
+      handle(actions.shift());
+      total_time = total_time + timer;
+      if (total_time > speed) {
+        total_time = total_time - speed;
+				drop();
+      }
+    }
+  }
+//all variables of the game are reset so that a new game can start without any previous references
+  function reset_game(){
+    speed = 0.6;
+    score = 0;
+    map = [];
+    invalidate_map();
+    actions = [];
+    set_current_piece(next_piece);
+    set_next_piece();
+  }
+
+//the function that moves the piece down and also make various checks for the flow of the game to work properly
+  function drop() {
+    if (!move(DIR.DOWN)) {
+			var i = 0;
+			iterate_block(current_piece.type, current_piece.x, current_piece.y, current_piece.dir, function(x, y) {
+				set_block(x, y, current_piece.type.dna[i]);
+				i++;
+      });
+      remove_blocks();
+      set_current_piece(next_piece);
+      set_next_piece(random_piece());
+      actions = [];
+      if (occupied(current_piece.type, current_piece.x, current_piece.y, current_piece.dir)) {
+        lose();
+      }
+    }
+  }
+//handles the commands from the player
+	function handle(action) {
+    switch(action) {
+      case DIR.LEFT:  move(DIR.LEFT);  break;
+      case DIR.RIGHT: move(DIR.RIGHT); break;
+      case DIR.UP:    rotate();        break;
+      case DIR.DOWN:  drop();          break;
+    }
+  }
+//moves the current piece in various directions
+  function move(dir) {
+		var x = current_piece.x,
+		y = current_piece.y;
+    switch(dir) {
+			case DIR.RIGHT: x = x + 1; break;
+      case DIR.LEFT:  x = x - 1; break;
+      case DIR.DOWN:  y = y + 1; break;
+    }
+		if (!occupied(current_piece.type, x, y, current_piece.dir)) {
+      current_piece.x = x;
+      current_piece.y = y;
+      invalidate_map();
+      return true;
+    }
+    else {
+      return false;
+    }
+	}
+//keycodes and the actions that occur on pushing a key
+	function keydown(ev) {
+    var handled = false;
+    if (playing) {
+      switch(ev.keyCode) {
+				case KEY.LEFT:
+					actions.push(DIR.LEFT);
+					handled = true;
+				  break;
+				case KEY.RIGHT:
+					actions.push(DIR.RIGHT);
+					handled = true;
+					break;
+				case KEY.UP:
+					actions.push(DIR.UP);
+					handled = true;
+					break;
+				case KEY.DOWN:
+					actions.push(DIR.DOWN);
+					handled = true;
+					break;
+        case KEY.ESC:
+					lose();
+					handled = true;
+				break;
+        }
+      }
+      else if (ev.keyCode == KEY.ONE) {
+        play();
+        handled = true;
+      }
+      else if (ev.keyCode == KEY.TWO){
+        play2();
+        handled = true;
+      }
+      else if(ev.keyCode == KEY.ENTER){
+        var player = {player_name:'', score:0}
+        player.player_name = document.getElementById("playerText").value;
+        player.score = score;
+        if(player.player_name.length > 2 && player.player_name.length < 11){
+          add_to_leaderboard(player);
+          document.getElementById("lose").style.visibility = "hidden";
+          document.getElementById("playerText").style.visibility = "hidden";
+        }
+        set_main_menu_visible();
+        set_game_invisible();
+        handled = true;
+      }
+      else if(ev.keyCode == KEY.Q){
+        if(last_played === 0){
+          set_main_menu_invisible();
+          document.getElementById("help1").style.visibility = "visible";
+        }
+      }
+      else if(ev.keyCode == KEY.W){
+        if(last_played === 0){
+          set_main_menu_invisible();
+          document.getElementById("help2").style.visibility = "visible";
+        }
+      }
+      else if(ev.keyCode == KEY.B){
+        if(last_played === 0){
+          document.getElementById("help1").style.visibility = "hidden";
+          document.getElementById("help2").style.visibility = "hidden";
+          set_main_menu_visible();
+        }
+      }
+      if (handled)
+        ev.preventDefault();
+    }
+//adds current player to leaderboard
+function add_to_leaderboard(p){
+  if(last_played === 2){
+    var flag = false;
+    if(leaderboard_2.length === 0){
+      leaderboard_2.push(p);
+    }
+    else{
+      leaderboard_2.forEach(function (element, i){
+        if(element.score <= p.score){
+          leaderboard_2.splice(i, 0, p);
+          flag = true;
+        }
+      });
+      if(flag == false){
+        leaderboard_2.push(p);
+      }
+    }
+  }
+  else if(last_played === 1){
+    var flag = false;
+    if(leaderboard_1.length === 0){
+      leaderboard_1.push(p);
+    }
+    else{
+      leaderboard_1.forEach(function (element, i){
+        if(element.score <= p.score){
+          leaderboard_1.splice(i, 0, p);
+          flag = true;
+        }
+      });
+      if(flag == false){
+        leaderboard_1.push(p);
+      }
+    }
+  }
+  last_played = 0;
+  update_leaderboard_view();
+}
+//updates the leaderboard view based on the leaderboard variables
+function update_leaderboard_view(){
+  if(leaderboard_1[0]){
+    document.getElementById("player1Name").innerHTML = leaderboard_1[0].player_name;
+    document.getElementById("player1Score").innerHTML = leaderboard_1[0].score;
+  }
+  if(leaderboard_1[1]){
+    document.getElementById("player2Name").innerHTML = leaderboard_1[1].player_name;
+    document.getElementById("player2Score").innerHTML = leaderboard_1[1].score;
+  }
+  if(leaderboard_1[2]){
+    document.getElementById("player3Name").innerHTML = leaderboard_1[2].player_name;
+    document.getElementById("player3Score").innerHTML = leaderboard_1[2].score;
+  }
+  if(leaderboard_1[3]){
+    document.getElementById("player4Name").innerHTML = leaderboard_1[3].player_name;
+    document.getElementById("player4Score").innerHTML = leaderboard_1[3].score;
+  }
+  if(leaderboard_1[4]){
+    document.getElementById("player5Name").innerHTML = leaderboard_1[4].player_name;
+    document.getElementById("player5Score").innerHTML = leaderboard_1[4].score;
+  }
+  if(leaderboard_2[0]){
+    document.getElementById("player1Nametwo").innerHTML = leaderboard_2[0].player_name;
+    document.getElementById("player1Scoretwo").innerHTML = leaderboard_2[0].score;
+  }
+  if(leaderboard_2[1]){
+    document.getElementById("player2Nametwo").innerHTML = leaderboard_2[1].player_name;
+    document.getElementById("player2Scoretwo").innerHTML = leaderboard_2[1].score;
+  }
+  if(leaderboard_2[2]){
+    document.getElementById("player3Nametwo").innerHTML = leaderboard_2[2].player_name;
+    document.getElementById("player3Scoretwo").innerHTML = leaderboard_2[2].score;
+  }
+  if(leaderboard_2[3]){
+    document.getElementById("player4Nametwo").innerHTML = leaderboard_2[3].player_name;
+    document.getElementById("player4Scoretwo").innerHTML = leaderboard_2[3].score;
+  }
+  if(leaderboard_2[4]){
+    document.getElementById("player5Nametwo").innerHTML = leaderboard_2[4].player_name;
+    document.getElementById("player5Scoretwo").innerHTML = leaderboard_2[4].score;
+  }
+}
+//removes blocks from the map based on their bonds
+function remove_blocks() {
+  var prevAtr = null;
+  var stop_sequence = false;
+  map.forEach(function(element, i) {
+    prevAtr = null;
+    element.forEach(function(atr, j) {
+      if (map[i-1] && map[i-1][j] && atr !== null) {
+        if (
+        (map[i-1][j].nucleotide == 'a' && atr.nucleotide == 't') ||
+        (map[i-1][j].nucleotide == 't' && atr.nucleotide == 'a') ||
+        (map[i-1][j].nucleotide == 'c' && atr.nucleotide == 'g') ||
+        (map[i-1][j].nucleotide == 'g' && atr.nucleotide == 'c')
+        ) {
+          if(playing1){
+            if(map[i][j].nucleotide == sequence[0] || map[i - 1][j].nucleotide == sequence[0])
+              remove_element_sequence();
+              stop_sequence = true;
+          }
+          if(speed >= 0.2){
+            speed = speed - 0.010;
+          }
+          set_block(i, j, null);
+          set_block(i -1, j, null);
+          increase_score(10);
+        }
+      }
+      if (prevAtr !== null && atr !== null) {
+        if (
+        (prevAtr.nucleotide == 'a' && atr.nucleotide == 't') ||
+        (prevAtr.nucleotide == 't' && atr.nucleotide == 'a') ||
+        (prevAtr.nucleotide == 'c' && atr.nucleotide == 'g') ||
+        (prevAtr.nucleotide == 'g' && atr.nucleotide == 'c')
+        ) {
+          if(playing1){
+            if(map[i][j].nucleotide == sequence[0] || map[i][j - 1].nucleotide == sequence[0] && stop_sequence == false)
+              remove_element_sequence();
+          }
+          if(speed >= 0.2){
+            speed = speed - 0.010;
+          }
+          set_block(i, j, null);
+          set_block(i, j-1, null);
+          increase_score(10);
+        }
+      }
+      prevAtr = atr;
+      });
+    });
+  }
+//removes sequence nucleotide
+  function remove_element_sequence(){
+    sequence.splice(0,1);
+    invalidate_sequence();
+    increase_score(100);
+    if(sequence.length == 0)
+      lose();
+  }
+//awards the player points
+  function increase_score(points){
+    score += points;
+  }
+//rotates the current piece
+	function rotate() {
+		var newdir;
+		if (current_piece.dir == DIR.MAX) {
+			newdir = DIR.MIN;
+		}
+		else {
+			newdir = current_piece.dir + 1;
+		}
+    if (!occupied(current_piece.type, current_piece.x, current_piece.y, newdir)) {
+      current_piece.dir = newdir;
+      invalidate_map();
+    }
+  }
+//main drawing function
+	function draw(){
+		ctx.save();
+    ctx.lineWidth = 1;
+    ctx.translate(0.5, 0.5);
+    draw_map();
+    draw_next();
+    draw_score();
+    if(playing1 == true){
+      draw_sequence();
+    }
+    ctx.restore();
+		}
+//draws the map/grid/playing field
+  function draw_map() {
+    if (invalid.map) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (playing)
+        draw_piece(ctx, current_piece.type, current_piece.x, current_piece.y, current_piece.dir);
+			var x, y;
+      for (y = 0 ; y < map_y ; y++) {
+        for (x = 0 ; x < map_x ; x++) {
+					if (get_block(x, y)) {
+						draw_map_block(ctx, x, y, map[x][y].nucleotide);
+					}
+        }
+      }
+      ctx.strokeRect(0, 0, map_x*dx - 1, map_y*dy - 1);
+      invalid.map = false;
+    }
+	}
+//draws the current piece
+	function draw_piece(ctx, type, x, y, dir) {
+		var i = 0;
+      iterate_block(type, x, y, dir, function(x, y) {
+				draw_block(ctx, x, y, type.dna, i);
+				i++;
+      });
+		}
+//draws the blocks that are part of the map
+	function draw_map_block(ctx, x, y, nucleotide) {
+		if (nucleotide == "a") {
+			ctx.drawImage(img_A, x*dx, y*dy, dx, dy);
+		}
+		else if (nucleotide == "t") {
+			ctx.drawImage(img_T, x*dx, y*dy, dx, dy);
+		}
+		else if (nucleotide =="g") {
+			ctx.drawImage(img_G, x*dx, y*dy, dx, dy);
+		}
+		else if(nucleotide == "c"){
+			ctx.drawImage(img_C, x*dx, y*dy, dx, dy);
+		}
+		else if(nucleotide == ""){
+
+		}
+	}
+//draws the blocks that are part of the piece
+  function draw_block(ctx, x, y, dna, i) {
+		if (dna[i] == "a") {
+			ctx.drawImage(img_A, x*dx, y*dy, dx, dy);
+		}
+		else if (dna[i] == "t") {
+			ctx.drawImage(img_T, x*dx, y*dy, dx, dy);
+		}
+		else if (dna[i] =="g") {
+			ctx.drawImage(img_G, x*dx, y*dy, dx, dy);
+		}
+		else if(dna[i] == "c") {
+			ctx.drawImage(img_C, x*dx, y*dy, dx, dy);
+		}
+  }
+//draws the next piece
+	function draw_next() {
+    if(playing){
+      if (invalid.next_piece) {
+        var padding = ( next_piece.type.size); 
+        uctx.save();
+        uctx.translate(0.5, 0.5);
+        uctx.clearRect(0, 0, ucanvas.width, ucanvas.height);
+        draw_piece(uctx, next_piece.type, 2, 1, next_piece.dir);
+        uctx.strokeRect(0, 0, ucanvas.width - 1, ucanvas.height - 1);
+        uctx.restore();
+        invalid.next_piece = false;
+      }
+    }
+  }
+//draws the score
+  function draw_score() {
+    if (invalid.score) {
+      document.getElementById('score').innerHTML = ("0000" + Math.floor(score)).slice(-5);
+      invalid.score = false;
+    }
+  }
+//draws the sequence of nucleotides
+  function draw_sequence() {
+    if(invalid.sequence){
+      var counter = 0;
+      sctx.save();
+      sctx.translate(0.5, 0.5);
+      sctx.clearRect(0, 0, scanvas.width, scanvas.height);
+      for(var i = 0; i < sequence.length; i++){
+        //draw_map_block(sctx, 0, counter*sy, sequence[i]);
+      if (sequence[i] == "a") {
+			  sctx.drawImage(img_A, 0, counter*sy, sx, sy);
+		  }
+		  else if (sequence[i] == "t") {
+			  sctx.drawImage(img_T, 0, counter*sy, sx, sy);
+		  }
+		  else if (sequence[i] =="g") {
+			  sctx.drawImage(img_G, 0, counter*sy, sx, sy);
+		  }
+		  else if(sequence[i] == "c"){
+			  sctx.drawImage(img_C, 0, counter*sy, sx, sy);
+		  }
+        counter++;
+      }
+      sctx.strokeRect(0, 0, scanvas.width, scanvas.height);
+      sctx.restore();
+      invalid.sequence = false;
+    }
+  }
+
+//changes the width and height of the canvases in order to make the game look better
+  function resize(event) {
+    canvas.width   = canvas.clientWidth;
+    canvas.height  = canvas.clientHeight;
+    ucanvas.width  = ucanvas.clientWidth;
+    ucanvas.height = ucanvas.clientHeight;
+    scanvas.width  = scanvas.clientWidth;
+    scanvas.height = scanvas.clientHeight;
+    dx = canvas.width  / map_x;
+    dy = canvas.height / map_y;
+    sx = scanvas.width / sequence_x;
+    sy = scanvas.height / sequence_y;
+    invalidate_map();
+    invalidate_next();
+    invalidate_sequence();
+  }
+
+//function that starts the first level
+	function play() {
+		reset_game();
+    playing = true;
+    set_game_visible();
+    set_main_menu_invisible();
+	}
+//function that starts the second level
+  function play2() {
+    reset_game();
+    playing = true;
+    set_game_visible();
+    set_main_menu_invisible();
+		playing1 = true;
+    create_Sequence();
+    document.getElementById("sequence").style.visibility = "visible";
+
+  }
+//function called when the game finishes, either by losing or finishing the sequence or by pressing the 'esc' key
+	function lose() {
+    document.getElementById("my_score").innerHTML = score;
+    if(playing1){
+      last_played = 2;
+    }
+    else{
+      last_played = 1;
+    }
+     playing = false; 
+     playing1 = false;
+     document.getElementById("lose").style.visibility = "visible";
+     document.getElementById("playerText").style.visibility = "visible";
+	}
+
+  run();
+}
+</script>
+
+<p>
+  <a href="http://validator.w3.org/check?uri=referer"><img
+    src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0 Strict" height="31" width="88" /></a>
+</p>
+
+</body>
+</html>
